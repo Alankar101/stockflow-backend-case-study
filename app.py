@@ -7,14 +7,14 @@ db.init_app(app)
 
 def get_recent_sales(product_id, days=30):
     """
-    Mock function.
-    Assuming product had some sales in last 30 days.
+    Mock logic for recent sales — 
+    real logic depends on a sales table, which we assume exists.
     """
-    return 30  # units sold in last 30 days
+    return 10
 
 @app.route('/api/companies/<int:company_id>/alerts/low-stock')
 def low_stock_alerts(company_id):
-    alerts = []
+    alerts_list = []
 
     inventories = Inventory.query.all()
 
@@ -22,11 +22,10 @@ def low_stock_alerts(company_id):
         product = Product.query.get(inv.product_id)
         warehouse = Warehouse.query.get(inv.warehouse_id)
 
-        if warehouse.company_id != company_id:
+        if not warehouse or warehouse.company_id != company_id:
             continue
 
-        threshold = product.low_stock_threshold
-
+        threshold = product.low_stock_threshold or 10
         if inv.quantity >= threshold:
             continue
 
@@ -35,11 +34,11 @@ def low_stock_alerts(company_id):
             continue
 
         daily_usage = recent_sales / 30
-        days_left = int(inv.quantity / daily_usage)
+        days_left = int(inv.quantity / daily_usage) if daily_usage > 0 else 0
 
-        supplier = Supplier.query.first()  # assuming one supplier
+        supplier = Supplier.query.first()
 
-        alerts.append({
+        alerts_list.append({
             "product_id": product.id,
             "product_name": product.name,
             "sku": product.sku,
@@ -49,15 +48,15 @@ def low_stock_alerts(company_id):
             "threshold": threshold,
             "days_until_stockout": days_left,
             "supplier": {
-                "id": supplier.id,
-                "name": supplier.name,
-                "contact_email": supplier.contact_email
+                "id": supplier.id if supplier else None,
+                "name": supplier.name if supplier else "",
+                "contact_email": supplier.contact_email if supplier else ""
             }
         })
 
     return jsonify({
-        "alerts": alerts,
-        "total_alerts": len(alerts)
+        "alerts": alerts_list,
+        "total_alerts": len(alerts_list)
     })
 
 if __name__ == "__main__":
