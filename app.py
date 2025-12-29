@@ -8,20 +8,19 @@ db.init_app(app)
 def get_recent_sales(product_id, days=30):
     """
     Mock logic for recent sales — 
-    real logic depends on a sales table, which we assume exists.
+    in a real system this would pull from a sales/order table.
     """
     return 10
 
 @app.route('/api/companies/<int:company_id>/alerts/low-stock')
 def low_stock_alerts(company_id):
-    alerts_list = []
+    alerts = []
 
     inventories = Inventory.query.all()
 
     for inv in inventories:
         product = Product.query.get(inv.product_id)
         warehouse = Warehouse.query.get(inv.warehouse_id)
-
         if not warehouse or warehouse.company_id != company_id:
             continue
 
@@ -38,7 +37,7 @@ def low_stock_alerts(company_id):
 
         supplier = Supplier.query.first()
 
-        alerts_list.append({
+        alerts.append({
             "product_id": product.id,
             "product_name": product.name,
             "sku": product.sku,
@@ -55,8 +54,8 @@ def low_stock_alerts(company_id):
         })
 
     return jsonify({
-        "alerts": alerts_list,
-        "total_alerts": len(alerts_list)
+        "alerts": alerts,
+        "total_alerts": len(alerts)
     })
 
 if __name__ == "__main__":
