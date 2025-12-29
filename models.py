@@ -21,7 +21,7 @@ class Inventory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
     warehouse_id = db.Column(db.Integer, db.ForeignKey('warehouse.id'))
-    quantity = db.Column(db.Integer, nullable=False)
+    quantity = db.Column(db.Integer, default=0)
 
 class Supplier(db.Model):
     id = db.Column(db.Integer, primary_key=True)
